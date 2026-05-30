@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  notes-app:
+    build: .
+    container_name: notes-management-app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./notes.db:/app/notes.db
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000').read()"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Edit Note</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    padding:40px;
+
+    background:linear-gradient(
+        135deg,
+        #0f172a,
+        #1e293b,
+        #2563eb
+    );
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.card{
+
+    width:100%;
+    max-width:700px;
+
+    background:rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+
+    border:1px solid rgba(255,255,255,0.2);
+
+    padding:30px;
+
+    border-radius:16px;
+
+    box-shadow:0 8px 32px rgba(0,0,0,0.2);
+}
+
+h2{
+    color:white;
+    text-align:center;
+    margin-bottom:25px;
+    font-size:30px;
+}
+
+input,
+textarea{
+
+    width:100%;
+
+    padding:12px;
+
+    margin-top:10px;
+    margin-bottom:15px;
+
+    border-radius:8px;
+
+    border:1px solid rgba(255,255,255,0.3);
+
+    background:rgba(255,255,255,0.08);
+
+    color:white;
+}
+
+input:focus,
+textarea:focus{
+
+    outline:none;
+
+    border-color:#60a5fa;
+
+    box-shadow:0 0 8px rgba(96,165,250,0.5);
+}
+
+button{
+
+    width:100%;
+
+    background:#22c55e;
+
+    color:white;
+
+    border:none;
+
+    padding:14px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-size:16px;
+    font-weight:bold;
+
+    transition:0.3s;
+}
+
+button:hover{
+
+    background:#16a34a;
+
+    transform:translateY(-2px);
+}
+
+.back-btn{
+
+    display:block;
+
+    text-align:center;
+
+    margin-top:15px;
+
+    text-decoration:none;
+
+    color:white;
+
+    background:#2563eb;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    background:#1d4ed8;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+    <h2>✏️ Edit Note</h2>
+
+    <form action="/update/{{ note[0] }}" method="POST">
+
+        <input
+            type="text"
+            name="title"
+            value="{{ note[1] }}"
+            required>
+
+        <textarea
+            name="content"
+            rows="6"
+            required>{{ note[2] }}</textarea>
+
+        <button type="submit">
+            Update Note
+        </button>
+
+    </form>
+
+    <a href="/" class="back-btn">
+        ← Back to Notes
+    </a>
+
+</div>
+
+</body>
+</html>

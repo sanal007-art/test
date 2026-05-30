@@ -1,0 +1,7 @@
+note-app.tar 
+note-app-modified.tar 
+notes.db 
+contract_address.json 
+contract_abi.json 
+__pycache__/ 
+*.pyc

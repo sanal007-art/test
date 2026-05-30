@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notes Management App</title>
+
+ 
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    padding:40px;
+
+    background:linear-gradient(
+        135deg,
+        #0f172a,
+        #1e293b,
+        #2563eb
+    );
+
+    color:white;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+.card{
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+
+    border:1px solid rgba(255,255,255,0.2);
+
+    padding:25px;
+    border-radius:16px;
+
+    box-shadow:0 8px 32px rgba(0,0,0,0.2);
+
+    margin-bottom:25px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:25px;
+    color:white;
+    font-size:38px;
+    font-weight:bold;
+}
+
+h2{
+    margin-bottom:15px;
+    color:white;
+}
+
+h3{
+    color:white;
+    margin-bottom:10px;
+}
+
+input,
+textarea{
+    width:100%;
+    padding:12px;
+
+    border:1px solid rgba(255,255,255,0.3);
+    border-radius:8px;
+
+    margin-top:10px;
+    margin-bottom:15px;
+
+    background:rgba(255,255,255,0.08);
+
+    color:white;
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:rgba(255,255,255,0.7);
+}
+
+input:focus,
+textarea:focus{
+    outline:none;
+
+    border-color:#60a5fa;
+
+    box-shadow:0 0 8px rgba(96,165,250,0.5);
+}
+
+button{
+    background:#2563eb;
+    color:white;
+
+    border:none;
+
+    padding:12px 20px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+    transition:0.3s;
+}
+
+button:hover{
+    background:#1d4ed8;
+    transform:translateY(-2px);
+}
+
+.note{
+    background:rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+
+    border:1px solid rgba(255,255,255,0.2);
+
+    padding:20px;
+
+    border-radius:16px;
+
+    margin-bottom:15px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,0.15);
+}
+
+.note p{
+    margin-bottom:15px;
+    color:#f1f5f9;
+    line-height:1.6;
+}
+
+.actions a{
+    text-decoration:none;
+    color:white;
+
+    padding:8px 14px;
+
+    border-radius:6px;
+
+    margin-right:8px;
+
+    display:inline-block;
+}
+
+.edit-btn{
+    background:#22c55e;
+}
+
+.edit-btn:hover{
+    background:#16a34a;
+}
+
+.delete-btn{
+    background:#ef4444;
+}
+
+.delete-btn:hover{
+    background:#dc2626;
+}
+
+</style>
+
+
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📝 Notes Management System</h1>
+
+    <div class="card">
+
+        <h2>Add New Note</h2>
+
+        <form action="/add" method="POST">
+
+            <input
+                type="text"
+                name="title"
+                placeholder="Enter Note Title"
+                required>
+
+            <textarea
+                name="content"
+                rows="5"
+                placeholder="Enter Note Content"
+                required></textarea>
+
+            <button type="submit">
+                Add Note
+            </button>
+
+        </form>
+
+    </div>
+
+    <h2>Saved Notes</h2>
+
+    {% for note in notes %}
+
+    <div class="note">
+
+        <h3>{{ note[1] }}</h3>
+
+        <p>{{ note[2] }}</p>
+
+        <div class="actions">
+
+            <a href="/edit/{{ note[0] }}" class="edit-btn">
+                Edit
+            </a>
+
+            <a href="/delete/{{ note[0] }}" class="delete-btn">
+                Delete
+            </a>
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
