@@ -23,8 +23,6 @@ def init_db():
 
 import logging
 
-logger = logging.getLogger(__name__)
-
 @app.route("/")
 def index():
     try:
@@ -33,10 +31,8 @@ def index():
         cursor.execute("SELECT * FROM notes")
         notes = cursor.fetchall()
         conn.close()
-        logger.info(f"Retrieved {len(notes)} notes")
         return render_template("index.html", notes=notes)
     except Exception as e:
-        logger.error(f"Database error: {e}")
         return "Error retrieving notes", 500
 
 

@@ -1,0 +1,3 @@
+# artifacts directory — kept for blockchain audit history
+# Each pipeline run adds a new timestamped .tar file here
+# These files are referenced by the audit dashboard for history viewing
