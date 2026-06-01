@@ -182,7 +182,10 @@ if ($VerifyOnly) {
 
     if ($VerifyExitCode -eq 0) {
         # The hash already matches the blockchain! This is the "same code" (Authorized)
-        Write-Log "Verification PASSED. Hash matches blockchain. Already AUTHORIZED." "SUCCESS"
+        Write-Log "============================================================" "SUCCESS"
+        Write-Log "  STATUS: AUTHORIZED (Hash matches blockchain)" "SUCCESS"
+        Write-Log "  Verification PASSED. Proceeding with deployment." "SUCCESS"
+        Write-Log "============================================================" "SUCCESS"
     } else {
         # The hash is different! This could be a new code update or unauthorized tampering
         Write-Log "------------------------------------------------------------" "WARN"
@@ -196,6 +199,7 @@ if ($VerifyOnly) {
         
         if ([string]::IsNullOrWhiteSpace($InputKey)) {
             Write-Log "============================================================" "ERROR"
+            Write-Log "  STATUS: UNAUTHORIZED / TAMPERED (No key provided)" "ERROR"
             Write-Log "  AUTHENTICATION FAILED - NO KEY PROVIDED" "ERROR"
             Write-Log "  UNAUTHORIZED CHANGE DETECTED - DEPLOYMENT BLOCKED" "ERROR"
             Write-Log "  Deployment aborted. Container will NOT be started." "ERROR"
@@ -230,10 +234,14 @@ if ($VerifyOnly) {
         $ErrorActionPreference = $OldErrorActionPreference
 
         if ($DeployExitCode -eq 0) {
-            Write-Log "ADMINISTRATOR CRYPTOGRAPHIC SIGNATURE VERIFIED successfully!" "SUCCESS"
-            Write-Log "New hash registered on blockchain successfully." "SUCCESS"
+            Write-Log "============================================================" "SUCCESS"
+            Write-Log "  STATUS: AUTHORIZED (Signed by Administrator)" "SUCCESS"
+            Write-Log "  ADMINISTRATOR CRYPTOGRAPHIC SIGNATURE VERIFIED successfully!" "SUCCESS"
+            Write-Log "  New hash registered on blockchain successfully." "SUCCESS"
+            Write-Log "============================================================" "SUCCESS"
         } else {
             Write-Log "============================================================" "ERROR"
+            Write-Log "  STATUS: UNAUTHORIZED / TAMPERED (Verification failed)" "ERROR"
             Write-Log "  CRYPTOGRAPHIC AUTHENTICATION FAILED - INVALID ETHEREUM PRIVATE KEY" "ERROR"
             Write-Log "  UNAUTHORIZED CHANGE DETECTED - DEPLOYMENT BLOCKED" "ERROR"
             Write-Log "  Deployment aborted. Container will NOT be started." "ERROR"
