@@ -105,9 +105,21 @@ Write-Log "Tar File     : $TarFilePath"
 Write-Log "Mode         : $(if ($VerifyOnly) {'VERIFY ONLY'} elseif ($SkipBuild) {'SKIP BUILD'} else {'FULL PIPELINE'})"
 Write-Log "============================================================" "INFO"
 
-# =============================================================================
-# STEP 1 - Build Docker image and export as note-app.tar
-# =============================================================================
+# Auto-detect if we can skip building because no source files changed
+if (-not $VerifyOnly -and -not $SkipBuild -and (Test-Path $TarFilePath)) {
+    Write-Log "Checking if any source files have been modified..." "INFO"
+    
+    # Check git status for modifications in files copied into the docker image
+    $GitDiff = git status --porcelain app.py requirements.txt templates Dockerfile 2>$null
+    
+    if (-not $GitDiff) {
+        Write-Log "No source code changes detected. Automatically reusing existing '$TarFile' to maintain hash stability." "SUCCESS"
+        $SkipBuild = $true
+    } else {
+        Write-Log "Source code changes detected. Rebuilding image..." "WARN"
+    }
+}
+
 if (-not $VerifyOnly -and -not $SkipBuild) {
     Write-Log "STEP 1/5 - Building Docker image '$ImageName'..." "INFO"
 
