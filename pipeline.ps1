@@ -177,34 +177,52 @@ if ($VerifyOnly) {
         Write-Log "NEW CODE VERSION DETECTED: Hash of $TarFile does not match blockchain." "WARN"
         Write-Log "------------------------------------------------------------" "WARN"
         
-        # Prompt the user for the Administrator's Private Key
+        # Prompt the user for the Ethereum Private Key
         Write-Host "This update is currently UNREGISTERED on the blockchain." -ForegroundColor Yellow
-        Write-Host "Please enter the Administrator's Private Key to authorize and sign this deployment:" -ForegroundColor Cyan
-        $InputKey = Read-Host "Private Key"
+        Write-Host "Please enter the Administrator's Ethereum Private Key to sign this transaction:" -ForegroundColor Cyan
+        $InputKey = Read-Host "Ethereum Private Key"
         
         if ([string]::IsNullOrWhiteSpace($InputKey)) {
-            $NormalizedInput = ""
-        } else {
-            $NormalizedInput = $InputKey.Trim().Replace("0x", "").ToLower()
+            Write-Log "============================================================" "ERROR"
+            Write-Log "  AUTHENTICATION FAILED - NO KEY PROVIDED" "ERROR"
+            Write-Log "  UNAUTHORIZED CHANGE DETECTED - DEPLOYMENT BLOCKED" "ERROR"
+            Write-Log "  Deployment aborted. Container will NOT be started." "ERROR"
+            Write-Log "============================================================" "ERROR"
+            exit 1
         }
-        
-        $NormalizedEnvKey = $env:ETH_PRIVATE_KEY.Trim().Replace("0x", "").ToLower()
-        
-        if ($NormalizedInput -eq $NormalizedEnvKey) {
-            Write-Log "ADMINISTRATOR KEY VERIFIED successfully!" "SUCCESS"
-            Write-Log "Authorized by administrator. Storing new hash on Ethereum blockchain..." "INFO"
-            python "$ScriptDir\deploy_contract.py" `
-                --artifact-path $TarFilePath `
-                --artifact-id   $ArtifactId `
-                --signer        $Signer `
-                --stage         $Stage `
-                --node-url      $env:ETH_NODE_URL
 
-            Assert-Success $LASTEXITCODE "Blockchain Store"
+        # Backup the current env key
+        $OldEnvKey = $env:ETH_PRIVATE_KEY
+        
+        # Temporarily override with the entered Ethereum private key
+        $env:ETH_PRIVATE_KEY = $InputKey.Trim()
+
+        # Attempt to sign and store the hash on the blockchain using the provided key
+        Write-Log "Attempting cryptographic transaction signing with the provided Ethereum Private Key..." "INFO"
+        
+        # Temporarily disable standard error halting so we can handle the python error gracefully
+        $OldErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+
+        python "$ScriptDir\deploy_contract.py" `
+            --artifact-path $TarFilePath `
+            --artifact-id   $ArtifactId `
+            --signer        $Signer `
+            --stage         $Stage `
+            --node-url      $env:ETH_NODE_URL
+            
+        $DeployExitCode = $LASTEXITCODE
+        
+        # Restore the environment key and error preference
+        $env:ETH_PRIVATE_KEY = $OldEnvKey
+        $ErrorActionPreference = $OldErrorActionPreference
+
+        if ($DeployExitCode -eq 0) {
+            Write-Log "ADMINISTRATOR CRYPTOGRAPHIC SIGNATURE VERIFIED successfully!" "SUCCESS"
             Write-Log "New hash registered on blockchain successfully." "SUCCESS"
         } else {
             Write-Log "============================================================" "ERROR"
-            Write-Log "  AUTHENTICATION FAILED - INVALID ADMINISTRATOR PRIVATE KEY" "ERROR"
+            Write-Log "  CRYPTOGRAPHIC AUTHENTICATION FAILED - INVALID ETHEREUM PRIVATE KEY" "ERROR"
             Write-Log "  UNAUTHORIZED CHANGE DETECTED - DEPLOYMENT BLOCKED" "ERROR"
             Write-Log "  Deployment aborted. Container will NOT be started." "ERROR"
             Write-Log "============================================================" "ERROR"
