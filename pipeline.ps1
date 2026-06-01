@@ -24,7 +24,8 @@ param(
     [string]$TarFile    = "note-app.tar",
     [switch]$SkipBuild,
     [switch]$VerifyOnly,
-    [switch]$PushToGit
+    [switch]$PushToGit,
+    [switch]$Unauthorized
 )
 
 Set-StrictMode -Version Latest
@@ -142,7 +143,7 @@ if (-not $VerifyOnly -and -not $SkipBuild) {
 # =============================================================================
 # STEP 3 - Hash note-app.tar and store hash on Ethereum blockchain
 # =============================================================================
-if (-not $VerifyOnly) {
+if (-not $VerifyOnly -and -not $Unauthorized) {
     Write-Log "STEP 3/5 - Hashing $TarFile and storing on Ethereum blockchain..." "INFO"
 
     python "$ScriptDir\deploy_contract.py" `
@@ -155,7 +156,11 @@ if (-not $VerifyOnly) {
     Assert-Success $LASTEXITCODE "Blockchain Store"
     Write-Log "Hash of $TarFile stored on blockchain successfully." "SUCCESS"
 } else {
-    Write-Log "STEP 3 SKIPPED (verify-only mode)." "WARN"
+    if ($Unauthorized) {
+        Write-Log "STEP 3 SKIPPED (UNAUTHORIZED SIMULATION MODE - NOT storing hash on blockchain)." "WARN"
+    } else {
+        Write-Log "STEP 3 SKIPPED (verify-only mode)." "WARN"
+    }
 }
 
 # =============================================================================

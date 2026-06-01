@@ -10,6 +10,3 @@ deploy_contract.py
 verify_artifact.py
 test.py
 artifacts/*.tar
-# or optionally ignore everything in artifacts except .gitkeep
-# artifacts/*
-# !artifacts/.gitkeep
