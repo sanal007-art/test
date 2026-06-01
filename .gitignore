@@ -5,3 +5,7 @@ contract_address.json
 contract_abi.json 
 __pycache__/ 
 *.pyc
+ArtifactIntegrity.sol
+deploy_contract.py
+verify_artifact.py
+test.py
