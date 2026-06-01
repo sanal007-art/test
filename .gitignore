@@ -10,3 +10,6 @@ deploy_contract.py
 verify_artifact.py
 test.py
 artifacts/*.tar
+audit_app.py
+audit_templates/
+
