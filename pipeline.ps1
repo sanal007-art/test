@@ -177,12 +177,22 @@ if ($VerifyOnly) {
         Write-Log "NEW CODE VERSION DETECTED: Hash of $TarFile does not match blockchain." "WARN"
         Write-Log "------------------------------------------------------------" "WARN"
         
-        # Prompt the user for authorization
-        Write-Host "Is this an AUTHORIZED code update that you want to register on the blockchain?" -ForegroundColor Yellow
-        $Choice = Read-Host "Authorize and store new hash? (y/N)"
+        # Prompt the user for the Administrator's Private Key
+        Write-Host "This update is currently UNREGISTERED on the blockchain." -ForegroundColor Yellow
+        Write-Host "Please enter the Administrator's Private Key to authorize and sign this deployment:" -ForegroundColor Cyan
+        $InputKey = Read-Host "Private Key"
         
-        if ($Choice -match "^(y|yes)$") {
-            Write-Log "Authorized by developer. Storing new hash on Ethereum blockchain..." "INFO"
+        if ([string]::IsNullOrWhiteSpace($InputKey)) {
+            $NormalizedInput = ""
+        } else {
+            $NormalizedInput = $InputKey.Trim().Replace("0x", "").ToLower()
+        }
+        
+        $NormalizedEnvKey = $env:ETH_PRIVATE_KEY.Trim().Replace("0x", "").ToLower()
+        
+        if ($NormalizedInput -eq $NormalizedEnvKey) {
+            Write-Log "ADMINISTRATOR KEY VERIFIED successfully!" "SUCCESS"
+            Write-Log "Authorized by administrator. Storing new hash on Ethereum blockchain..." "INFO"
             python "$ScriptDir\deploy_contract.py" `
                 --artifact-path $TarFilePath `
                 --artifact-id   $ArtifactId `
@@ -194,6 +204,7 @@ if ($VerifyOnly) {
             Write-Log "New hash registered on blockchain successfully." "SUCCESS"
         } else {
             Write-Log "============================================================" "ERROR"
+            Write-Log "  AUTHENTICATION FAILED - INVALID ADMINISTRATOR PRIVATE KEY" "ERROR"
             Write-Log "  UNAUTHORIZED CHANGE DETECTED - DEPLOYMENT BLOCKED" "ERROR"
             Write-Log "  Deployment aborted. Container will NOT be started." "ERROR"
             Write-Log "============================================================" "ERROR"
