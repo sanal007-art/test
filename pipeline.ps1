@@ -181,6 +181,8 @@ if ($VerifyOnly) {
     $VerifyExitCode = $LASTEXITCODE
 
     if ($VerifyExitCode -eq 0) {
+        # Print the detailed output from verify_artifact.py
+        Write-Host $VerifyOutput
         # The hash already matches the blockchain! This is the "same code" (Authorized)
         Write-Log "============================================================" "SUCCESS"
         Write-Log "  STATUS: AUTHORIZED (Hash matches blockchain)" "SUCCESS"
