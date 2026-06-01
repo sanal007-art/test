@@ -24,8 +24,7 @@ param(
     [string]$TarFile    = "note-app.tar",
     [switch]$SkipBuild,
     [switch]$VerifyOnly,
-    [switch]$PushToGit,
-    [switch]$Unauthorized
+    [switch]$PushToGit
 )
 
 Set-StrictMode -Version Latest
@@ -141,49 +140,67 @@ if (-not $VerifyOnly -and -not $SkipBuild) {
 }
 
 # =============================================================================
-# STEP 3 - Hash note-app.tar and store hash on Ethereum blockchain
+# STEP 3 & 4 - Integrity Verification & Blockchain State Synchronization
 # =============================================================================
-if (-not $VerifyOnly -and -not $Unauthorized) {
-    Write-Log "STEP 3/5 - Hashing $TarFile and storing on Ethereum blockchain..." "INFO"
-
-    python "$ScriptDir\deploy_contract.py" `
+if ($VerifyOnly) {
+    Write-Log "Verifying $TarFile integrity against blockchain..." "INFO"
+    python "$ScriptDir\verify_artifact.py" `
         --artifact-path $TarFilePath `
         --artifact-id   $ArtifactId `
-        --signer        $Signer `
-        --stage         $Stage `
         --node-url      $env:ETH_NODE_URL
+    $VerifyExitCode = $LASTEXITCODE
 
-    Assert-Success $LASTEXITCODE "Blockchain Store"
-    Write-Log "Hash of $TarFile stored on blockchain successfully." "SUCCESS"
+    if ($VerifyExitCode -ne 0) {
+        Write-Log "============================================================" "ERROR"
+        Write-Log "  VERIFICATION FAILED - ARTIFACT MAY HAVE BEEN TAMPERED" "ERROR"
+        Write-Log "  DEPLOYMENT IS BLOCKED. Container will NOT be started." "ERROR"
+        Write-Log "============================================================" "ERROR"
+        exit 1
+    }
+    Write-Log "Verification PASSED. $TarFile integrity confirmed." "SUCCESS"
 } else {
-    if ($Unauthorized) {
-        Write-Log "STEP 3 SKIPPED (UNAUTHORIZED SIMULATION MODE - NOT storing hash on blockchain)." "WARN"
+    Write-Log "Performing pre-check verification of newly built $TarFile against blockchain..." "INFO"
+    
+    # Run verification check to see if the hash is already authorized on the blockchain
+    $VerifyOutput = python "$ScriptDir\verify_artifact.py" `
+        --artifact-path $TarFilePath `
+        --artifact-id   $ArtifactId `
+        --node-url      $env:ETH_NODE_URL 2>&1
+    $VerifyExitCode = $LASTEXITCODE
+
+    if ($VerifyExitCode -eq 0) {
+        # The hash already matches the blockchain! This is the "same code" (Authorized)
+        Write-Log "Verification PASSED. Hash matches blockchain. Already AUTHORIZED." "SUCCESS"
     } else {
-        Write-Log "STEP 3 SKIPPED (verify-only mode)." "WARN"
+        # The hash is different! This could be a new code update or unauthorized tampering
+        Write-Log "------------------------------------------------------------" "WARN"
+        Write-Log "NEW CODE VERSION DETECTED: Hash of $TarFile does not match blockchain." "WARN"
+        Write-Log "------------------------------------------------------------" "WARN"
+        
+        # Prompt the user for authorization
+        Write-Host "Is this an AUTHORIZED code update that you want to register on the blockchain?" -ForegroundColor Yellow
+        $Choice = Read-Host "Authorize and store new hash? (y/N)"
+        
+        if ($Choice -match "^(y|yes)$") {
+            Write-Log "Authorized by developer. Storing new hash on Ethereum blockchain..." "INFO"
+            python "$ScriptDir\deploy_contract.py" `
+                --artifact-path $TarFilePath `
+                --artifact-id   $ArtifactId `
+                --signer        $Signer `
+                --stage         $Stage `
+                --node-url      $env:ETH_NODE_URL
+
+            Assert-Success $LASTEXITCODE "Blockchain Store"
+            Write-Log "New hash registered on blockchain successfully." "SUCCESS"
+        } else {
+            Write-Log "============================================================" "ERROR"
+            Write-Log "  UNAUTHORIZED CHANGE DETECTED - DEPLOYMENT BLOCKED" "ERROR"
+            Write-Log "  Deployment aborted. Container will NOT be started." "ERROR"
+            Write-Log "============================================================" "ERROR"
+            exit 1
+        }
     }
 }
-
-# =============================================================================
-# STEP 4 - Verify note-app.tar integrity against blockchain record
-# =============================================================================
-Write-Log "STEP 4/5 - Verifying $TarFile integrity against blockchain..." "INFO"
-
-python "$ScriptDir\verify_artifact.py" `
-    --artifact-path $TarFilePath `
-    --artifact-id   $ArtifactId `
-    --node-url      $env:ETH_NODE_URL
-
-$VerifyExitCode = $LASTEXITCODE
-
-if ($VerifyExitCode -ne 0) {
-    Write-Log "============================================================" "ERROR"
-    Write-Log "  VERIFICATION FAILED - ARTIFACT MAY HAVE BEEN TAMPERED" "ERROR"
-    Write-Log "  DEPLOYMENT IS BLOCKED. Container will NOT be started." "ERROR"
-    Write-Log "============================================================" "ERROR"
-    exit 1
-}
-
-Write-Log "Verification PASSED. $TarFile integrity confirmed." "SUCCESS"
 
 # =============================================================================
 # STEP 5 - Start container via docker-compose
